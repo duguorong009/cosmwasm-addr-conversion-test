@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use cosmrs::AccountId;
+use bech32::{ToBase32, FromBase32};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
@@ -83,24 +83,21 @@ fn query_count(deps: Deps) -> StdResult<CountResponse> {
     Ok(CountResponse { count: state.count })
 }
 
-fn to_bech32_addr(deps: Deps, prefix: String, bytes: [u8; 32]) -> StdResult<Bech32AddrResponse> {
-    let account_id: AccountId =
-        AccountId::new(&prefix, &bytes).expect("Cannot convert to bech32 address");
-
-    Ok(Bech32AddrResponse {
-        bech32_addr: account_id.to_string(),
+fn to_bech32_addr(_deps: Deps, prefix: String, bytes: [u8; 32]) -> StdResult<Bech32AddrResponse> {
+    let bech32_addr = bech32::encode(&prefix, bytes.to_vec().to_base32(), bech32::Variant::Bech32).unwrap();
+    Ok(Bech32AddrResponse{
+        bech32_addr,
     })
 }
 
-fn from_bech32_addr(deps: Deps, bech32_addr: String) -> StdResult<BytesAddrResponse> {
-    let account_id: AccountId =
-        AccountId::from_str(&bech32_addr).expect("Cannot convert to bytes address");
+fn from_bech32_addr(_deps: Deps, bech32_addr: String) -> StdResult<BytesAddrResponse> {
+    let (prefix, data, _) = bech32::decode(&bech32_addr).unwrap();
+    let data = Vec::<u8>::from_base32(&data).unwrap();
 
-    let prefix = account_id.prefix().to_string();
     let mut bytes = [0u8; 32];
     bytes
         .iter_mut()
-        .zip(&account_id.to_bytes())
+        .zip(&data)
         .for_each(|(b1, b2)| *b1 = *b2);
 
     Ok(BytesAddrResponse { prefix, bytes })
