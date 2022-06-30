@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "QueryMsg",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
@@ -10,6 +10,57 @@
       "properties": {
         "get_count": {
           "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "to_bech32"
+      ],
+      "properties": {
+        "to_bech32": {
+          "type": "object",
+          "required": [
+            "bytes",
+            "prefix"
+          ],
+          "properties": {
+            "bytes": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "maxItems": 32,
+              "minItems": 32
+            },
+            "prefix": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "from_bech32"
+      ],
+      "properties": {
+        "from_bech32": {
+          "type": "object",
+          "required": [
+            "bech32"
+          ],
+          "properties": {
+            "bech32": {
+              "type": "string"
+            }
+          }
         }
       },
       "additionalProperties": false
