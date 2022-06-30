@@ -1,6 +1,4 @@
-use std::str::FromStr;
-
-use bech32::{ToBase32, FromBase32};
+use bech32::{FromBase32, ToBase32};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
@@ -84,10 +82,9 @@ fn query_count(deps: Deps) -> StdResult<CountResponse> {
 }
 
 fn to_bech32_addr(_deps: Deps, prefix: String, bytes: [u8; 32]) -> StdResult<Bech32AddrResponse> {
-    let bech32_addr = bech32::encode(&prefix, bytes.to_vec().to_base32(), bech32::Variant::Bech32).unwrap();
-    Ok(Bech32AddrResponse{
-        bech32_addr,
-    })
+    let bech32_addr =
+        bech32::encode(&prefix, bytes.to_vec().to_base32(), bech32::Variant::Bech32).unwrap();
+    Ok(Bech32AddrResponse { bech32_addr })
 }
 
 fn from_bech32_addr(_deps: Deps, bech32_addr: String) -> StdResult<BytesAddrResponse> {
@@ -95,10 +92,7 @@ fn from_bech32_addr(_deps: Deps, bech32_addr: String) -> StdResult<BytesAddrResp
     let data = Vec::<u8>::from_base32(&data).unwrap();
 
     let mut bytes = [0u8; 32];
-    bytes
-        .iter_mut()
-        .zip(&data)
-        .for_each(|(b1, b2)| *b1 = *b2);
+    bytes.iter_mut().zip(&data).for_each(|(b1, b2)| *b1 = *b2);
 
     Ok(BytesAddrResponse { prefix, bytes })
 }
@@ -190,13 +184,28 @@ mod tests {
         ];
 
         // Check "FromBech32"
-        let res = query(deps.as_ref(), mock_env(), QueryMsg::FromBech32 { bech32: mock_beck32_addr.to_string() }).unwrap();
+        let res = query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::FromBech32 {
+                bech32: mock_beck32_addr.to_string(),
+            },
+        )
+        .unwrap();
         let bytes_addr_resp: BytesAddrResponse = from_binary(&res).unwrap();
         assert_eq!(bytes_addr_resp.prefix, mock_prefix.clone());
         assert_eq!(bytes_addr_resp.bytes, mock_bytes);
 
         // Check "ToBech32"
-        let res = query(deps.as_ref(), mock_env(), QueryMsg::ToBech32 { prefix: mock_prefix, bytes: mock_bytes }).unwrap();
+        let res = query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::ToBech32 {
+                prefix: mock_prefix,
+                bytes: mock_bytes,
+            },
+        )
+        .unwrap();
         let bech32_addr_resp: Bech32AddrResponse = from_binary(&res).unwrap();
         assert_eq!(bech32_addr_resp.bech32_addr, mock_beck32_addr.to_string());
     }
